@@ -1,13 +1,15 @@
 // Copyright (c) 2018-2019 K Team. All Rights Reserved.
 package org.kframework.unparser;
 
-import com.google.inject.Inject;
 import com.davekoelle.AlphanumComparator;
+import com.google.inject.Inject;
 import org.kframework.attributes.Att;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ExpandMacros;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
+import org.kframework.definition.Sentence;
+import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.Assoc;
 import org.kframework.kore.K;
@@ -16,9 +18,9 @@ import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
 import org.kframework.kore.TransformK;
 import org.kframework.main.GlobalOptions;
-import org.kframework.parser.ProductionReference;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.parser.concrete2kore.ParseInModule;
+import org.kframework.parser.ProductionReference;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
@@ -157,6 +159,15 @@ public class KPrint {
                 return ToJson.apply(term);
             case LATEX:
                 return ToLatex.apply(term);
+            default:
+                throw KEMException.criticalError("Unsupported serialization mode: " + outputMode);
+        }
+    }
+
+    public static byte[] serializeSentence(Sentence sent, OutputModes outputMode) {
+        switch (outputMode) {
+            case LATEX:
+                return ToLatex.apply(sent);
             default:
                 throw KEMException.criticalError("Unsupported serialization mode: " + outputMode);
         }
