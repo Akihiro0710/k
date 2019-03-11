@@ -3,6 +3,7 @@ module SMTLIB2-SPEC
 
   syntax SMTLIB2SimpleSymbol ::= "a"        [token]
                                | "b"        [token]
+                               | "c"        [token]
                                | "f"        [token]
                                | "f_2"      [token]
                                | "f_6"      [token]
@@ -25,6 +26,7 @@ module SMTLIB2-SPEC
                                | "z"        [token]
                                | "SetInt"   [token]
 
+  // unsat
   rule <k>
             (declare-const a Bool)
             (assert (= a true .SMTLIB2TermList))
@@ -33,6 +35,7 @@ module SMTLIB2-SPEC
        <z3> .K => unsat </z3>
        <cvc4> .K => unsat </cvc4>
 
+  // sat
   rule <k>
             (declare-const a Bool)
             (assert (= a false))
@@ -40,16 +43,26 @@ module SMTLIB2-SPEC
        <z3> .K => sat </z3>
        <cvc4> .K => sat </cvc4>
 
-  rule <k>
-            (declare-const a Int)
-            (declare-const b Int)
-            (declare-const n Int)
-            (assert (= b (* (^ a n) a):SMTLIB2Term))
-            (assert (not (= b (^ a (+ n 1):SMTLIB2Term):SMTLIB2Term):SMTLIB2Term))
+  // unknown: Fermat's last theorem for n = 3
+  rule <k> (declare-const a Int)
+           (declare-const b Int)
+           (declare-const c Int)
+           ( assert ( > a 0 ))
+           ( assert ( > b 0 ))
+           ( assert ( > c 0 ))
+           ( assert ( = ( * c c c):SMTLIB2Term
+                        ( + (* a a a):SMTLIB2Term (* b b b):SMTLIB2Term):SMTLIB2Term))
+           .SMTLIB2Script
        </k>
        <z3> .K => unknown(.K) </z3>
-       <cvc4> .K => unknown(_) </cvc4>
+       <cvc4> .K => unknown(.K) </cvc4>
 
+  // error (undeclared variables)
+  rule <k> (assert (= a b)) .SMTLIB2Script </k>
+       <z3> .K => unknown(#systemResult(1, _, _)) </z3>
+       <cvc4> .K => unknown(#systemResult(1, _, _)) </cvc4>
+
+  // Complex
   rule <k>
             ( declare-const f SetInt )
             ( declare-const z Int )
@@ -83,32 +96,33 @@ module SMTLIB2-SPEC
        <z3> .K => unsat </z3>
        <cvc4> .K => unsat </cvc4>
 
-    rule <k>
-              ( declare-const f SetInt )
-              ( declare-const g2 SetInt )
-              ( declare-const y Int )
-              ( declare-const g1 SetInt )
-              ( declare-const f_2 SetInt )
-              ( declare-const h ( Array Int Int .SMTLIB2SortList ) )
-              ( declare-const y_3 Int )
-              ( declare-const x_15 Int )
-              ( declare-fun list ( ( Array Int  Int  .SMTLIB2SortList )  Int  SetInt  .SMTLIB2SortList ) Bool )
-              ( assert ( and ( list h  y  g2  .SMTLIB2TermList )
-                       ( and ( disjointx g1  g2  .SMTLIB2TermList )
-                       ( and ( = f  ( unionx g1  g2  .SMTLIB2TermList )  .SMTLIB2TermList )
-                       ( and ( > y_3  0  .SMTLIB2TermList )
-                       ( and ( = y  ( select h  y_3  .SMTLIB2TermList )  .SMTLIB2TermList )
-                       ( and ( = g1  ( unionx f_2  ( singleton y_3  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )
-                       ( and ( disjointx f_2  ( singleton y_3  .SMTLIB2TermList )  .SMTLIB2TermList )
-                       ( and ( = x_15  ( select h  y_3  .SMTLIB2TermList )  .SMTLIB2TermList )
-                       ( and ( = ( select h  y_3  .SMTLIB2TermList )  x_15  .SMTLIB2TermList )  true  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList ) )
-              ( assert ( forall ( ( g2_9 SetInt )  ( f_14 SetInt )  .SMTLIB2SortedVarList )
-                            ( not ( and ( disjointx f_2  g2_9  .SMTLIB2TermList )
-                                  ( and ( = f  ( unionx f_2  g2_9  .SMTLIB2TermList )  .SMTLIB2TermList )
-                                  ( and ( list h  x_15  f_14  .SMTLIB2TermList )
-                                  ( and ( = g2_9  ( unionx f_14  ( singleton y_3  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )
-                                  ( and ( disjointx f_14  ( singleton y_3  .SMTLIB2TermList )  .SMTLIB2TermList )  true  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList ) ) )  .SMTLIB2Script
-         </k>
-         <z3> .K => unknown(.K) </z3>
-         <cvc4> .K => unsat </cvc4>
+  // quantifier
+  rule <k>
+            ( declare-const f SetInt )
+            ( declare-const g2 SetInt )
+            ( declare-const y Int )
+            ( declare-const g1 SetInt )
+            ( declare-const f_2 SetInt )
+            ( declare-const h ( Array Int Int .SMTLIB2SortList ) )
+            ( declare-const y_3 Int )
+            ( declare-const x_15 Int )
+            ( declare-fun list ( ( Array Int  Int  .SMTLIB2SortList )  Int  SetInt  .SMTLIB2SortList ) Bool )
+            ( assert ( and ( list h  y  g2  .SMTLIB2TermList )
+                     ( and ( disjointx g1  g2  .SMTLIB2TermList )
+                     ( and ( = f  ( unionx g1  g2  .SMTLIB2TermList )  .SMTLIB2TermList )
+                     ( and ( > y_3  0  .SMTLIB2TermList )
+                     ( and ( = y  ( select h  y_3  .SMTLIB2TermList )  .SMTLIB2TermList )
+                     ( and ( = g1  ( unionx f_2  ( singleton y_3  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )
+                     ( and ( disjointx f_2  ( singleton y_3  .SMTLIB2TermList )  .SMTLIB2TermList )
+                     ( and ( = x_15  ( select h  y_3  .SMTLIB2TermList )  .SMTLIB2TermList )
+                     ( and ( = ( select h  y_3  .SMTLIB2TermList )  x_15  .SMTLIB2TermList )  true  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList ) )
+            ( assert ( forall ( ( g2_9 SetInt )  ( f_14 SetInt )  .SMTLIB2SortedVarList )
+                          ( not ( and ( disjointx f_2  g2_9  .SMTLIB2TermList )
+                                ( and ( = f  ( unionx f_2  g2_9  .SMTLIB2TermList )  .SMTLIB2TermList )
+                                ( and ( list h  x_15  f_14  .SMTLIB2TermList )
+                                ( and ( = g2_9  ( unionx f_14  ( singleton y_3  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )
+                                ( and ( disjointx f_14  ( singleton y_3  .SMTLIB2TermList )  .SMTLIB2TermList )  true  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList ) ) )  .SMTLIB2Script
+       </k>
+       <z3> .K => unknown(.K) </z3>
+       <cvc4> .K => unsat </cvc4>
 endmodule

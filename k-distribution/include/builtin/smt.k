@@ -66,6 +66,7 @@ module SMTLIB2
                                | "-"     [token]
                                | "^"     [token]
                                | ">"     [token]
+                               | "<"     [token]
 
   // Sets (defined by CVC4, but not Z3)
   syntax SMTLIB2SimpleSymbol ::= "emptyset"     [token]
