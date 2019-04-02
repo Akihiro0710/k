@@ -187,9 +187,9 @@ public class ToLatex {
             KAs alias = (KAs) k;
 
             writeString(out, "\\kas{");
-            apply(out, alias.pattern()));
+            apply(out, alias.pattern());
             writeString(out, "}{");
-            apply(out, alias.alias()));
+            apply(out, alias.alias());
             writeString(out, "}{");
             apply(out, alias.att());
             writeString(out, "}");
